@@ -1,0 +1,31 @@
+pluginName = /com.xebialabs.xlrelease.ci.XLReleaseNotifier/
+
+for (item in jenkins.model.Jenkins.getInstance().getAllItems(hudson.model.FreeStyleProject)) {
+
+  if (item.getPublishersList().findAll{ it =~ pluginName }) {
+
+	println "Found job: " + item.getFullName()
+    
+    xlr_publisher = item.getPublishersList().find{ it.getClass() =~ pluginName }
+    
+    varsList = xlr_publisher.variables
+    
+    for (v in varsList) {
+      if (v.propertyName && v.propertyName[0] == '$') {
+	    newVal = v.propertyName[2..-2]
+    	println "Will replace ${v.propertyName} with ${newVal}"
+        v.propertyName = newVal
+      }
+    }
+        
+    // !! Potentially destructive code: !!
+    xlr_publisher.variables = varsList
+    item.save()
+    println "Job configuration saved"
+    
+    println "-----------"
+    println ""
+  }
+
+}
+
